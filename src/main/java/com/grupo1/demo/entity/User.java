@@ -14,19 +14,18 @@ public class User {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "name" , nullable = false)
-    private String name;
+    @Column(name = "nombre" , nullable = false)
+    private String nombre;
 
-    @Column(name = "lastname" , nullable = false)
-    private String lastName;
+    @Column(name = "apellido" , nullable = false)
+    private String apellido;
 
-    @Column(name = "username" , nullable = false , unique = true)
-    private String username;
-
-    @Column(name = "password" , nullable = false)
-    private String password;
-
-    @Column(name = "email_address" , nullable = false , unique = true)
+    @Column(name = "email" , nullable = false , unique = true)
     private String email;
 
+    @Column(name = "usuario" , nullable = false , unique = true)
+    private String usuario;
+
+    @Column(name = "contrasenia" , nullable = false)
+    private String contrasenia;
 }

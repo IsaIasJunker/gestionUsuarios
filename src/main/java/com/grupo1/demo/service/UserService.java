@@ -13,26 +13,56 @@ import java.util.Optional;
 public class UserService {
 
     @Autowired
-    UserRepository userRepository;
+    private UserRepository userRepository;
 
-    public List<User> getUsers() {
-        return userRepository.findAll();
+    /**
+     * Obtiene todos los usuarios de la base de datos
+     * @return
+     */
+    public List <User> getAllUsers(){
+        return userRepository.findAll(); 
     }
 
-    public Optional <User> getUser(Long id) {
+    /**
+     * Se busca un usuario con un id especifico
+     * @param id
+     * @return
+     */
+    public Optional<User> findUserById(Long id){
         return userRepository.findById(id);
     }
 
-    public void addUser(User user) {
+    /**
+     * Se elimina un usuario utilizando su id 
+     * @param userId
+     */
+    public void deleteUserById(Long userId){
+        if(userRepository.existsById(userId)){
+            userRepository.deleteById(userId);
+        }else{
+            throw new RuntimeException("Usuario no encontrado con ID: " + userId);
+        }
+    }
+    /**
+     * Se registra un usuario mando un json con los atributos del usuario
+     * @param user
+     * @return
+     */
+    public String registerUser(User user){
         userRepository.save(user);
+        return "Se ha registrado con exito el usuario"; 
     }
 
-    public void saveOrUpdate (User user) {
-        userRepository.save(user);
+    /**
+     * Se busca un usuario usando su nombre como parametro
+     * @param nombre
+     * @return
+     */
+    public Optional<User> findUserByName(String nombre){
+        return userRepository.findByNombre(nombre);
     }
 
-    public void delete (Long id) {
-        userRepository.deleteById(id);
+    public Optional <User> findUserByApellido(String email){
+        return userRepository.findByApellido(email);
     }
-
 }
