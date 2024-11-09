@@ -8,6 +8,8 @@ import java.util.List;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
@@ -43,10 +45,15 @@ public class UserService {
      * @return , un mensaje indicando que se borró correctamente el usuario
      */
     public ResponseEntity deleteUserById(long id){
-        userRepository.deleteById(id);
-
-        return ResponseEntity.ok("El usuario ha sido eliminado");
+        Optional<Usuario> usuario = userRepository.findById(id);
+        if(usuario.isEmpty()){
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Usuario no encontrado");
+        }else{
+            userRepository.deleteById(id);
+            return ResponseEntity.ok("El usuario ha sido eliminado");
+        }
     }
+    
     /**
      * Metodo para registrar un usuario en la base de datos
      * @param usuario, usuario que le pasamos por parametro
