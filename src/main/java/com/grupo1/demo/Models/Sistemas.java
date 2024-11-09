@@ -2,13 +2,13 @@ package com.grupo1.demo.Models;
 
 
 import jakarta.persistence.*;
+import lombok.Data;
 import lombok.Getter;
 import lombok.Setter;
 import java.util.Set;
 
+@Data
 @Entity
-@Getter
-@Setter
 @Table(name = "sistemas")
 public class Sistemas {
 
