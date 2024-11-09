@@ -36,7 +36,13 @@ public class UserService {
      */
     public ResponseEntity getUserById(long id){
         Optional<Usuario> usuario = userRepository.findById(id);
-        return ResponseEntity.ok(usuario);
+        if(usuario.isEmpty()){
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Usuario no encontrado");
+        }else{
+            return ResponseEntity.ok(usuario);
+        }
+        
+        
     }
 
     /**
@@ -53,7 +59,7 @@ public class UserService {
             return ResponseEntity.ok("El usuario ha sido eliminado");
         }
     }
-    
+
     /**
      * Metodo para registrar un usuario en la base de datos
      * @param usuario, usuario que le pasamos por parametro
