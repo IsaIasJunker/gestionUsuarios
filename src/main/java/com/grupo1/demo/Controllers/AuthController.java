@@ -1,4 +1,4 @@
-package com.grupo1.demo.controller;
+package com.grupo1.demo.Controllers;
 
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.RestController;
