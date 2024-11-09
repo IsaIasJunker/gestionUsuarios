@@ -3,16 +3,12 @@ package com.grupo1.demo.Services;
 
 import com.grupo1.demo.Models.Usuario;
 import com.grupo1.demo.Repositories.UserRepository;
-
 import java.util.List;
 import java.util.Optional;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
-
 @Service
 
 public class UserService {
@@ -41,10 +37,7 @@ public class UserService {
         }else{
             return ResponseEntity.ok(usuario);
         }
-        
-        
     }
-
     /**
      * Metodo que elimina un usuario utilizando su id
      * @param id , del usuario que vamos a eliminar
@@ -59,7 +52,6 @@ public class UserService {
             return ResponseEntity.ok("El usuario ha sido eliminado");
         }
     }
-
     /**
      * Metodo para registrar un usuario en la base de datos
      * @param usuario, usuario que le pasamos por parametro

@@ -1,10 +1,10 @@
 package com.grupo1.demo.Controllers;
 
 
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
 import com.grupo1.demo.Models.Usuario;
 import com.grupo1.demo.Services.UserService;
 
@@ -18,6 +18,7 @@ public class UserController {
 
     @Autowired
     private UserService userService;
+
     
 
     @GetMapping("/users")
@@ -30,7 +31,7 @@ public class UserController {
         return userService.getUserById(userId);
     }
 
-    @DeleteMapping("/users/students/{studentId}")
+    @DeleteMapping("/users/delete/{studentId}")
     public ResponseEntity<?> deleteStudent(@PathVariable("studentId") long studentId){
         return userService.deleteUserById(studentId);
     }
