@@ -15,7 +15,6 @@ public class UserService {
 
     @Autowired
     UserRepository userRepository;
-
     /**
      * Metodo para obtener todos los usuarios de la base de datos
      * @return una lista con todos los usuarios de la base de datos 
@@ -32,11 +31,11 @@ public class UserService {
      */
     public ResponseEntity getUserById(long id){
         Optional<Usuario> usuario = userRepository.findById(id);
+        //Verifico que el usuario exista en la base de datos
         if(usuario.isEmpty()){
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Usuario no encontrado");
-        }else{
-            return ResponseEntity.ok(usuario);
         }
+        return ResponseEntity.ok(usuario);
     }
     /**
      * Metodo que elimina un usuario utilizando su id
@@ -45,6 +44,7 @@ public class UserService {
      */
     public ResponseEntity deleteUserById(long id){
         Optional<Usuario> usuario = userRepository.findById(id);
+        //Verifico si el usuario existe en la base de datos 
         if(usuario.isEmpty()){
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Usuario no encontrado");
         }else{
@@ -58,7 +58,31 @@ public class UserService {
      * @return un mensaje indicando que se registro correctamente
      */
     public ResponseEntity addUser(Usuario usuario){
+        //Compruebo que no hayan campos vacios
+        if (verifyEmptyFields(usuario) == true) {
+            return ResponseEntity.status(HttpStatus.CONFLICT).body("Verifique los datos ingresados");
+        }
+        //Compruebo que el nombre ingresado no exista en la base de datos
+        if(userRepository.findByNombreUsuario(usuario.getNombreUsuario())!=null){
+            return ResponseEntity.status(HttpStatus.CONFLICT).body("Usuario ya existe");
+        }
+        //Si el nombre no existe entonces guardo el nuevo usuario en la base de datos.
         userRepository.save(usuario);
         return ResponseEntity.ok("Usuario registrado correctamente");
+    }
+
+    
+    /**
+     * Metodo que verifica si alguno de los campos del objeto usuario está vacio
+     * @param usuario , usuario que vamos a verificar que sus campos no estén vacios
+     * @return, "false" si ninguno de sus campos está vacio, si alguno de los campos está vacio retorna "True".
+     */
+    private boolean verifyEmptyFields (Usuario usuario){
+        if(usuario.getNombreUsuario().isEmpty() || 
+        usuario.getContrasenia().isEmpty() || usuario.getNombre().isEmpty() 
+        || usuario.getNombre().isEmpty()){
+            return true;
+        }
+        return false;
     }
 }

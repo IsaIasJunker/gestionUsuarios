@@ -2,13 +2,16 @@ package com.grupo1.demo.Models;
 
 
 import jakarta.persistence.*;
-import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
+
 import java.util.Set;
 
-@Data
 @Entity
+@Getter
+@Setter
 @Table(name = "sistemas")
-public class Sistemas {
+public class Sistema {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -21,4 +24,13 @@ public class Sistemas {
     @OneToMany(mappedBy = "sistema" , cascade = CascadeType.ALL , orphanRemoval = true)
     private Set<Permisos> permisos;
 
+
+    // Constructor para crear instancias con solo nombre
+    public Sistema(String nombre){
+        this.nombre = nombre;
+    }
+    public Sistema() {
+    }
+
+    
 }

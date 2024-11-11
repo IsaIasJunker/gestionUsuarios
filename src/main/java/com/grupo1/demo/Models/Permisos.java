@@ -20,5 +20,5 @@ public class Permisos {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "sistema", nullable = false)
-    private Sistemas sistema;
+    private Sistema sistema;
 }
