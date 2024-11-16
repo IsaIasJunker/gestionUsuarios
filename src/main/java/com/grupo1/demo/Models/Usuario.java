@@ -25,6 +25,9 @@ public class Usuario {
     @Column(name = "apellido" , nullable = false)
     private String apellido;
 
+    @Column(name = "email" , nullable = false , unique = true)
+    private String email;
+
     @JsonIgnore //Notacion para que a la hora de mandar la request en el json no se tenga en cuenta
     @OneToMany(mappedBy = "usuario" , cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<Permisos> permisos;

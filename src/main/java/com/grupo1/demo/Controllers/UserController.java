@@ -9,7 +9,7 @@ import com.grupo1.demo.Models.Usuario;
 import com.grupo1.demo.Services.UserService;
 
 @RestController
-@RequestMapping("/sistema")
+@RequestMapping("/cuentas/API")
 /**
  * Clase UserController
  */
@@ -32,7 +32,7 @@ public class UserController {
     }
 
     //Eliminar un usuario utilizando su id 
-    @DeleteMapping("/users/delete/{userId}")
+    @DeleteMapping("/users/{userId}")
     public ResponseEntity<?> deleteStudent(@PathVariable("userId") long userId){
         return userService.deleteUserById(userId);
     }

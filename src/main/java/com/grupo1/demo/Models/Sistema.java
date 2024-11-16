@@ -24,7 +24,6 @@ public class Sistema {
     @OneToMany(mappedBy = "sistema" , cascade = CascadeType.ALL , orphanRemoval = true)
     private Set<Permisos> permisos;
 
-
     // Constructor para crear instancias con solo nombre
     public Sistema(String nombre){
         this.nombre = nombre;
