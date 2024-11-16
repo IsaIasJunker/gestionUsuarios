@@ -63,7 +63,7 @@ public class UserService {
             return ResponseEntity.status(HttpStatus.CONFLICT).body("Verifique los datos ingresados");
         }
         //Compruebo que el nombre ingresado no exista en la base de datos
-        if(userRepository.findByNombreUsuario(usuario.getNombreUsuario())!=null){
+        if(userRepository.findByUsername(usuario.getNombreUsuario())!=null){
             return ResponseEntity.status(HttpStatus.CONFLICT).body("Usuario ya existe");
         }
         //Si el nombre no existe entonces guardo el nuevo usuario en la base de datos.
