@@ -1,6 +1,5 @@
 package com.grupo1.demo.Services;
 
-
 import com.grupo1.demo.Models.Usuario;
 import com.grupo1.demo.Repositories.UserRepository;
 import java.util.List;
