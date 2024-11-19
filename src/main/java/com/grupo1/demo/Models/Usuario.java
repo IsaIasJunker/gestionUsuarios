@@ -9,6 +9,7 @@ import java.util.Set;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonView;
 import com.grupo1.demo.config.Views;
+import com.grupo1.demo.dto.UsuarioDTO;
 
 @Data
 @Entity

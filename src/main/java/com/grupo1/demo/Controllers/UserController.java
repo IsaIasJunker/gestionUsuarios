@@ -7,9 +7,9 @@ import org.springframework.web.bind.annotation.*;
 
 import com.fasterxml.jackson.annotation.JsonView;
 import com.grupo1.demo.Models.Usuario;
-import com.grupo1.demo.Models.UsuarioDTO;
 import com.grupo1.demo.Services.UserService;
 import com.grupo1.demo.config.Views;
+import com.grupo1.demo.dto.UsuarioDTO;
 
 @RestController
 @RequestMapping("/cuentas/API")

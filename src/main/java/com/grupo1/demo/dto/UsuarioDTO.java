@@ -1,4 +1,4 @@
-package com.grupo1.demo.Models;
+package com.grupo1.demo.dto;
 
 import java.util.List;
 

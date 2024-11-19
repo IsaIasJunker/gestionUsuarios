@@ -1,8 +1,8 @@
 package com.grupo1.demo.Services;
 import com.grupo1.demo.Models.Sistema;
-import com.grupo1.demo.Models.UsuarioDTO;
 import com.grupo1.demo.Repositories.SistemaRepository;
 import com.grupo1.demo.Repositories.UserRepository;
+import com.grupo1.demo.dto.UsuarioDTO;
 
 import jakarta.annotation.PostConstruct;
 

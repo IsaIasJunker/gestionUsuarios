@@ -4,21 +4,24 @@ package com.grupo1.demo.Services;
 import com.grupo1.demo.Models.Permisos;
 import com.grupo1.demo.Models.Sistema;
 import com.grupo1.demo.Models.Usuario;
-import com.grupo1.demo.Models.UsuarioDTO;
-import com.grupo1.demo.Repositories.PermisoRepository;
 import com.grupo1.demo.Repositories.SistemaRepository;
 import com.grupo1.demo.Repositories.UserRepository;
+import com.grupo1.demo.dto.PermisosDTO;
+import com.grupo1.demo.dto.UsuarioDTO;
+import com.grupo1.demo.dto.UsuarioResponseDTO;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-
+import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+
 @Service
 
 public class UserService {
@@ -28,7 +31,10 @@ public class UserService {
 
     @Autowired
     SistemaRepository sistemaRepository;
-    PermisoRepository permisosRepository;
+
+    @Autowired
+    private BCryptPasswordEncoder passwordEncoder;
+
 
     /**
      * Metodo para obtener todos los usuarios de la base de datos
@@ -36,7 +42,28 @@ public class UserService {
     */
     public ResponseEntity<?> getAllUsers(){
         List<Usuario> usuarios = userRepository.findAll();
-        return ResponseEntity.ok(usuarios);
+
+        // Mapear Usuario a UsuarioResponseDTO
+        List<UsuarioResponseDTO> responseDTOs = usuarios.stream().map(usuario -> {
+            UsuarioResponseDTO dto = new UsuarioResponseDTO();
+            dto.setId(usuario.getId());
+            dto.setUsername(usuario.getUsername());
+            dto.setFirstName(usuario.getFirstName());
+            dto.setLastName(usuario.getLastName());
+            
+            // Mapear permisos a PermisosDTO
+            List<PermisosDTO> permisosDTOs = usuario.getPermisos().stream().map(permiso -> {
+                PermisosDTO permisosDTO = new PermisosDTO();
+                permisosDTO.setSystemId(permiso.getSistemaId());
+                permisosDTO.setName(permiso.getSistemaNombre());
+                return permisosDTO;
+            }).collect(Collectors.toList());
+            
+            dto.setPermisos(permisosDTOs);
+            return dto;
+        }).collect(Collectors.toList());
+
+        return ResponseEntity.ok(responseDTOs);
     }
 
     /**
@@ -57,6 +84,9 @@ public class UserService {
         if (userRepository.findByUsername(usuario.getUsername()) != null) {
             return ResponseEntity.status(HttpStatus.CONFLICT).body("Usuario ya existe");
         }
+
+        // Hashear la contraseña
+        usuario.setPassword(passwordEncoder.encode(usuario.getPassword()));
 
         // Crear permisos y asignarlos al usuario
         if (usuarioDTO.getSistemaIds() != null && !usuarioDTO.getSistemaIds().isEmpty()) {
@@ -101,7 +131,12 @@ public class UserService {
         existingUser.setUsername(updatedUser.getUsername());
         existingUser.setFirstName(updatedUser.getFirstName());
         existingUser.setLastName(updatedUser.getLastName());
-        existingUser.setPassword(updatedUser.getPassword());
+        
+        // Actualizar la contraseña solo si se proporcionó una nueva
+        if (updatedUser.getPassword() != null && !updatedUser.getPassword().isEmpty()) {
+            String hashedPassword = passwordEncoder.encode(updatedUser.getPassword());
+            existingUser.setPassword(hashedPassword);
+        }
     
         // Actualizar los permisos
         if (updatedUser.getSistemaIds() != null) {
