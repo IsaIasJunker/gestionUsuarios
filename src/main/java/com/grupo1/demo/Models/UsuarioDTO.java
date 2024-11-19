@@ -1,6 +1,6 @@
 package com.grupo1.demo.Models;
 
-import java.util.Set;
+import java.util.List;
 
 import lombok.Getter;
 import lombok.Setter;
@@ -12,5 +12,5 @@ public class UsuarioDTO {
     private String lastName;
     private String username;
     private String password;
-    private Set<Long> sistemaIds; // IDs de sistemas
+    private List<Long> sistemaIds; // IDs de sistemas
 }

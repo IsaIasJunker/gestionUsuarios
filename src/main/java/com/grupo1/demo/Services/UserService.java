@@ -18,6 +18,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 @Service
 
 public class UserService {
@@ -84,53 +85,51 @@ public class UserService {
         return ResponseEntity.ok("Usuario registrado correctamente");
     }
 
-
-    // SIN TESTEAR. Metodo para editar un usuario
+    // Editar usuarios
     public ResponseEntity<?> editUser(long id, UsuarioDTO updatedUser) {
         // Buscar el usuario por ID
-        Optional<Usuario> existingUserOpt = userRepository.findById(id);
-        if (!existingUserOpt.isPresent()) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Usuario no encontrado");
-        }
-
-        Usuario existingUser = existingUserOpt.get();
-
-        // Actualizar los datos del usuario con los valores del DTO
-        existingUser.setUsername(updatedUser.getUsername());
-        existingUser.setFirstName(updatedUser.getFirstName());
-        existingUser.setLastName(updatedUser.getLastName());
-
-
-        // Verificar si el nombre de usuario ya existe (para evitar duplicados)
+        Usuario existingUser = userRepository.findById(id)
+            .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Usuario no encontrado"));
+    
+        // Verificar si el email (username) ya existe para otro usuario
         if (!existingUser.getUsername().equals(updatedUser.getUsername()) &&
             userRepository.findByUsername(updatedUser.getUsername()) != null) {
             return ResponseEntity.status(HttpStatus.CONFLICT).body("El nombre de usuario ya está en uso");
         }
-
-        // Actualizar los permisos (si es necesario)
-        if (updatedUser.getSistemaIds() != null && !updatedUser.getSistemaIds().isEmpty()) {
-            List<Permisos> permisos = new ArrayList<>();
-            
-            for (Long sistemaId : updatedUser.getSistemaIds()) {
-                Optional<Sistema> sistemaOpt = sistemaRepository.findById(sistemaId);
-                if (sistemaOpt.isPresent()) {
-                    Sistema sistema = sistemaOpt.get();
-                    Permisos permiso = new Permisos();
-                    permiso.setUsuario(existingUser);
-                    permiso.setSistema(sistema);
-                    permisos.add(permiso);
-            }
+    
+        // Actualizar los atributos del usuario con los datos de updatedUser
+        existingUser.setUsername(updatedUser.getUsername());
+        existingUser.setFirstName(updatedUser.getFirstName());
+        existingUser.setLastName(updatedUser.getLastName());
+        existingUser.setPassword(updatedUser.getPassword());
+    
+        // Actualizar los permisos
+        if (updatedUser.getSistemaIds() != null) {
+            // Obtener los sistemas correspondientes a los IDs
+            List<Sistema> sistemas = sistemaRepository.findAllById(updatedUser.getSistemaIds());
+    
+            // Crear una nueva lista de permisos basada en los sistemas proporcionados
+            List<Permisos> nuevosPermisos = sistemas.stream().map(sistema -> {
+                Permisos permiso = new Permisos();
+                permiso.setUsuario(existingUser);
+                permiso.setSistema(sistema);
+                return permiso;
+            }).toList();
+    
+            // Eliminar permisos actuales del usuario
+            existingUser.getPermisos().clear();
+    
+            // Agregar los nuevos permisos
+            existingUser.getPermisos().addAll(nuevosPermisos);
         }
-
-        // Actualizar permisos del usuario (esto podría implicar borrar los permisos anteriores) TESTEAR
-        existingUser.setPermisos(permisos);
-    }
-
+    
         // Guardar los cambios del usuario
         userRepository.save(existingUser);
-
+    
         return ResponseEntity.ok("Usuario actualizado correctamente");
     }
+    
+
 
 
     /**
