@@ -1,87 +1,122 @@
 package com.grupo1.demo.Services;
 
+import com.grupo1.demo.Auth.AuthService;
 import com.grupo1.demo.Models.Usuario;
 import com.grupo1.demo.Repositories.UserRepository;
-import java.util.List;
-import java.util.Optional;
-import org.springframework.beans.factory.annotation.Autowired;
+import com.grupo1.demo.Auth.LoginRequest;
+import com.grupo1.demo.Auth.RegisterRequest;
+import com.grupo1.demo.Auth.AuthResponse;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.userdetails.User;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-@Service
 
+import java.util.List;
+import java.util.Optional;
+
+@Service
+@RequiredArgsConstructor
 public class UserService {
 
-    @Autowired
-    UserRepository userRepository;
+    private final UserRepository userRepository;
+    private final PasswordEncoder passwordEncoder;
+    private final AuthService authService;
+
     /**
-     * Metodo para obtener todos los usuarios de la base de datos
-     * @return una lista con todos los usuarios de la base de datos 
+     * Obtener todos los usuarios.
      */
-    public ResponseEntity<?> getAllUsers(){
+    public ResponseEntity<?> getAllUsers() {
         List<Usuario> usuarios = userRepository.findAll();
         return ResponseEntity.ok(usuarios);
     }
 
     /**
-     * Metodo que busca un usuario por su id
-     * @param id , del usuario que queremos buscar
-     * @return , el usuario que buscamos por id
+     * Obtener un usuario por su ID.
      */
-    public ResponseEntity getUserById(long id){
+    public ResponseEntity<?> getUserById(long id) {
         Optional<Usuario> usuario = userRepository.findById(id);
-        //Verifico que el usuario exista en la base de datos
-        if(usuario.isEmpty()){
+        if (usuario.isEmpty()) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Usuario no encontrado");
         }
         return ResponseEntity.ok(usuario);
     }
+
     /**
-     * Metodo que elimina un usuario utilizando su id
-     * @param id , del usuario que vamos a eliminar
-     * @return , un mensaje indicando que se borró correctamente el usuario
+     * Eliminar un usuario por su ID.
      */
-    public ResponseEntity deleteUserById(long id){
+    public ResponseEntity<?> deleteUserById(long id) {
         Optional<Usuario> usuario = userRepository.findById(id);
-        //Verifico si el usuario existe en la base de datos 
-        if(usuario.isEmpty()){
+        if (usuario.isEmpty()) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Usuario no encontrado");
-        }else{
-            userRepository.deleteById(id);
-            return ResponseEntity.ok("El usuario ha sido eliminado");
         }
-    }
-    /**
-     * Metodo para registrar un usuario en la base de datos
-     * @param usuario, usuario que le pasamos por parametro
-     * @return un mensaje indicando que se registro correctamente
-     */
-    public ResponseEntity addUser(Usuario usuario){
-        //Compruebo que no hayan campos vacios
-        if (verifyEmptyFields(usuario) == true) {
-            return ResponseEntity.status(HttpStatus.CONFLICT).body("Verifique los datos ingresados");
-        }
-        //Compruebo que el nombre ingresado no exista en la base de datos
-        if(userRepository.findByUsername(usuario.getNombreUsuario())!=null){
-            return ResponseEntity.status(HttpStatus.CONFLICT).body("Usuario ya existe");
-        }
-        //Si el nombre no existe entonces guardo el nuevo usuario en la base de datos.
-        userRepository.save(usuario);
-        return ResponseEntity.ok("Usuario registrado correctamente");
+        userRepository.deleteById(id);
+        return ResponseEntity.ok("El usuario ha sido eliminado");
     }
 
-    
     /**
-     * Metodo que verifica si alguno de los campos del objeto usuario está vacio
-     * @param usuario , usuario que vamos a verificar que sus campos no estén vacios
-     * @return, "false" si ninguno de sus campos está vacio, si alguno de los campos está vacio retorna "True".
+     * Registrar un nuevo usuario.
      */
-    private boolean verifyEmptyFields (Usuario usuario){
-        if(usuario.getNombreUsuario().isEmpty() || 
-        usuario.getContrasenia().isEmpty() || usuario.getNombre().isEmpty() 
-        || usuario.getNombre().isEmpty()){
-            return true;
+    public ResponseEntity<AuthResponse> register(RegisterRequest request) {
+        if (verifyEmptyFields(request)) {
+            return ResponseEntity.status(HttpStatus.CONFLICT).body(new AuthResponse("Verifique los datos ingresados"));
         }
-        return false;
+
+        if (userRepository.findByUsername(request.getUsername()).isPresent()) {
+            return ResponseEntity.status(HttpStatus.CONFLICT).body(new AuthResponse("El usuario ya existe"));
+        }
+
+        Usuario usuario = new Usuario();
+        usuario.setNombreUsuario(request.getUsername());
+        usuario.setContrasenia(passwordEncoder.encode(request.getPassword()));
+        usuario.setEmail(request.getUsername());
+        usuario.setNombre(request.getFirstname());
+        usuario.setApellido(request.getLastname());
+
+        userRepository.save(usuario);
+
+        UserDetails userDetails = User.builder()
+                .username(usuario.getEmail())
+                .password(usuario.getContrasenia())
+                .roles(usuario.getRole())
+                .build();
+
+        String token = authService.authenticateAndGenerateToken(request.getUsername(), request.getPassword(), userDetails);
+
+        return ResponseEntity.ok(new AuthResponse(token));
+    }
+
+    /**
+     * Loguear un usuario existente.
+     */
+    public ResponseEntity<AuthResponse> login(LoginRequest request) {
+        Optional<Usuario> optionalUser = userRepository.findByUsername(request.getUsername());
+        if (optionalUser.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new AuthResponse("Usuario no encontrado"));
+        }
+
+        Usuario usuario = optionalUser.get();
+
+        UserDetails userDetails = User.builder()
+                .username(usuario.getEmail())
+                .password(usuario.getContrasenia())
+                .roles(usuario.getRole())
+                .build();
+
+        String token = authService.authenticateAndGenerateToken(request.getUsername(), request.getPassword(), userDetails);
+
+        return ResponseEntity.ok(new AuthResponse(token));
+    }
+
+    /**
+     * Verificar si los campos del registro están vacíos.
+     */
+    private boolean verifyEmptyFields(RegisterRequest request) {
+        return request.getUsername().isEmpty() ||
+                request.getPassword().isEmpty() ||
+                request.getFirstname().isEmpty() ||
+                request.getLastname().isEmpty();
     }
 }
