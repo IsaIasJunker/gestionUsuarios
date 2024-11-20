@@ -1,38 +1,59 @@
 package com.grupo1.demo.Models;
 import jakarta.persistence.*;
 import lombok.Data;
+
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Set;
+
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonView;
+import com.grupo1.demo.config.Views;
+import com.grupo1.demo.dto.UsuarioDTO;
 
 @Data
 @Entity
-@Table (name = "usuarios")
+@Table(name = "usuarios")
 public class Usuario {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column (name = "id_usuario" , nullable = false)
+    @Column(name = "id_usuario", nullable = false)
+    @JsonView(Views.NoCrudView.class) // Incluido en ambas vistas
     private long id;
 
-    @Column(name = "nombreUsuario" , nullable = false , unique = true)
-    private String nombreUsuario;
+    @Column(name = "username", nullable = false, unique = true)
+    @JsonView(Views.NoCrudView.class) // Incluido en ambas vistas
+    private String username;
 
-    @Column(name = "contrasenia" , nullable = false)
-    private String contrasenia;
+    @Column(name = "password", nullable = false)
+    @JsonView(Views.NoCrudView.class) // Incluido en ambas vistas
+    private String password;
 
-    @Column(name = "nombre" , nullable = false)
-    private String nombre;
+    @Column(name = "firstName", nullable = false)
+    @JsonView(Views.NoCrudView.class) // Incluido en ambas vistas
+    private String firstName;
 
-    @Column(name = "apellido" , nullable = false)
-    private String apellido;
+    @Column(name = "lastName", nullable = false)
+    @JsonView(Views.NoCrudView.class) // Incluido en ambas vistas
+    private String lastName;
 
-    @Column(name = "email" , nullable = false , unique = true)
-    private String email;
-
-    @JsonIgnore //Notacion para que a la hora de mandar la request en el json no se tenga en cuenta
-    @OneToMany(mappedBy = "usuario" , cascade = CascadeType.ALL, orphanRemoval = true)
-    private Set<Permisos> permisos;
-
-    @JsonIgnore //Notacion para que a la hora de mandar la request en el json no se tenga en cuenta
+    // Permisos solo presentes en la vista CRUD
     @OneToMany(mappedBy = "usuario", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonView(Views.CrudView.class)
+    private List<Permisos> permisos = new ArrayList<>();
+
+    @OneToMany(mappedBy = "usuario", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonIgnore // Siempre ignorar sesiones en todas las vistas
     private Set<Token> sesiones;
+
+    // Constructor que recibe un UsuarioDTO
+    public Usuario(UsuarioDTO usuarioDTO) {
+        this.firstName = usuarioDTO.getFirstName();
+        this.lastName = usuarioDTO.getLastName();
+        this.username = usuarioDTO.getUsername();
+        this.password = usuarioDTO.getPassword();
+    }
+    public Usuario(){        
+    }
 }
