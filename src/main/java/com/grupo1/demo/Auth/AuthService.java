@@ -1,12 +1,15 @@
 package com.grupo1.demo.Auth;
 
 import com.grupo1.demo.Jwt.JwtService;
+import com.grupo1.demo.Models.Usuario;
+import com.grupo1.demo.Repositories.UserRepository;
+import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 
-import lombok.RequiredArgsConstructor;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -14,6 +17,7 @@ public class AuthService {
 
     private final JwtService jwtService;
     private final AuthenticationManager authenticationManager;
+    private final UserRepository userRepository;
 
     /**
      * Autentica al usuario y genera un token JWT.
@@ -25,6 +29,34 @@ public class AuthService {
         );
 
         // Generar el token JWT
-        return jwtService.getToken(userDetails);
+        String token = jwtService.getToken(userDetails);
+
+        // Actualizar el token actual del usuario en la base de datos
+        Optional<Usuario> optionalUsuario = userRepository.findByUsername(username);
+        if (optionalUsuario.isPresent()) {
+            Usuario usuario = optionalUsuario.get();
+            usuario.setCurrentToken(token);
+            userRepository.save(usuario);
+        }
+
+        return token;
+    }
+
+    /**
+     * Verifica si el token actual del usuario coincide con el almacenado en la base de datos.
+     *
+     * @param username El nombre de usuario.
+     * @param token    El token a verificar.
+     * @return true si el token coincide, false en caso contrario.
+     */
+    public boolean isTokenValid(String username, String token) {
+        Optional<Usuario> optionalUsuario = userRepository.findByUsername(username);
+        if (optionalUsuario.isEmpty()) {
+            return false; // Usuario no encontrado
+        }
+
+        Usuario usuario = optionalUsuario.get();
+        // Comparar el token actual con el almacenado
+        return token.equals(usuario.getCurrentToken());
     }
 }
