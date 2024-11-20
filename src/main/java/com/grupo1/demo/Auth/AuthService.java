@@ -32,7 +32,7 @@ public class AuthService {
         String token = jwtService.getToken(userDetails);
 
         // Actualizar el token actual del usuario en la base de datos
-        Optional<Usuario> optionalUsuario = userRepository.findByUsername(username);
+        Optional<Usuario> optionalUsuario = userRepository.findOptionalByUsername(username);
         if (optionalUsuario.isPresent()) {
             Usuario usuario = optionalUsuario.get();
             usuario.setCurrentToken(token);
@@ -50,7 +50,7 @@ public class AuthService {
      * @return true si el token coincide, false en caso contrario.
      */
     public boolean isTokenValid(String username, String token) {
-        Optional<Usuario> optionalUsuario = userRepository.findByUsername(username);
+        Optional<Usuario> optionalUsuario = userRepository.findOptionalByUsername(username);
         if (optionalUsuario.isEmpty()) {
             return false; // Usuario no encontrado
         }

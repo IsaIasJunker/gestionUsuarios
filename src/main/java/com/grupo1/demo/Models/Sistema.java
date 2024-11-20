@@ -5,7 +5,7 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 
-import java.util.Set;
+import java.util.List;
 
 @Entity
 @Getter
@@ -22,8 +22,7 @@ public class Sistema {
     private String nombre;
 
     @OneToMany(mappedBy = "sistema" , cascade = CascadeType.ALL , orphanRemoval = true)
-    private Set<Permisos> permisos;
-
+    private List<Permisos> permisos;
 
     // Constructor para crear instancias con solo nombre
     public Sistema(String nombre){
@@ -31,6 +30,4 @@ public class Sistema {
     }
     public Sistema() {
     }
-
-    
 }
