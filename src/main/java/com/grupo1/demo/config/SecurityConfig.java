@@ -1,5 +1,6 @@
 package com.grupo1.demo.config;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -19,15 +20,16 @@ import org.springframework.web.filter.CorsFilter;
 import com.grupo1.demo.Jwt.JwtAuthenticationFilter;
 import com.grupo1.demo.Services.CustomUserDetailsService;
 
-import lombok.RequiredArgsConstructor;
 
 @Configuration
 @EnableWebSecurity
-@RequiredArgsConstructor
 public class SecurityConfig {
 
-    private final JwtAuthenticationFilter jwtAuthenticationFilter;
-    private CustomUserDetailsService customUserDetailsService;
+    @Autowired
+    JwtAuthenticationFilter jwtAuthenticationFilter;
+    
+    @Autowired
+    CustomUserDetailsService customUserDetailsService;
 
     @Bean
     public BCryptPasswordEncoder passwordEncoder() {
@@ -67,6 +69,7 @@ public class SecurityConfig {
         http
             .cors(cors -> {
                 CorsConfiguration corsConfig = new CorsConfiguration();
+                corsConfig.addAllowedOrigin("http://localhost:3000"); // Ajusta según tu dominio
                 corsConfig.addAllowedOrigin("http://localhost:3000"); // Ajusta según tu dominio
                 corsConfig.addAllowedMethod("*");
                 corsConfig.addAllowedHeader("*");

@@ -3,7 +3,8 @@ package com.grupo1.demo.Auth;
 import com.grupo1.demo.Jwt.JwtService;
 import com.grupo1.demo.Models.Usuario;
 import com.grupo1.demo.Repositories.UserRepository;
-import lombok.RequiredArgsConstructor;
+
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -12,12 +13,16 @@ import org.springframework.stereotype.Service;
 import java.util.Optional;
 
 @Service
-@RequiredArgsConstructor
 public class AuthService {
 
-    private final JwtService jwtService;
-    private final AuthenticationManager authenticationManager;
-    private final UserRepository userRepository;
+    @Autowired
+    JwtService jwtService;
+
+    @Autowired
+    AuthenticationManager authenticationManager;
+
+    @Autowired
+    UserRepository userRepository;
 
     /**
      * Autentica al usuario y genera un token JWT.
