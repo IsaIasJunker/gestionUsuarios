@@ -21,7 +21,7 @@ public class Usuario implements UserDetails {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "id_usuario", nullable = false)
+    @Column(name = "id", nullable = false)
     @JsonView(Views.NoCrudView.class) // Incluido en ambas vistas
     private long id;
 
@@ -47,9 +47,8 @@ public class Usuario implements UserDetails {
     private List<Permisos> permisos = new ArrayList<>();
 
     @JsonIgnore //Notacion para que a la hora de mandar la request en el json no se tenga en cuenta
-    @OneToMany(mappedBy = "usuario", cascade = CascadeType.ALL, orphanRemoval = true)
-    private Set<Token> sesiones;
-    private String currentToken;
+    @OneToMany(mappedBy = "usuario", fetch = FetchType.LAZY)
+    private List<Token> tokens;
 
     // Constructor que recibe un UsuarioDTO
     public Usuario(UsuarioDTO usuarioDTO) {

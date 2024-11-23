@@ -40,7 +40,7 @@ public class AuthService {
         Optional<Usuario> optionalUsuario = userRepository.findOptionalByUsername(username);
         if (optionalUsuario.isPresent()) {
             Usuario usuario = optionalUsuario.get();
-            usuario.setCurrentToken(token);
+            //usuario.setTokens(token);
             userRepository.save(usuario);
         }
 
@@ -62,6 +62,6 @@ public class AuthService {
 
         Usuario usuario = optionalUsuario.get();
         // Comparar el token actual con el almacenado
-        return token.equals(usuario.getCurrentToken());
+        return token.equals(usuario.getTokens());
     }
 }

@@ -12,19 +12,16 @@ public class Token {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private long idSesiones;
+    private long id;
 
     @Column(name = "token" , nullable = false , unique = true)
     private String token;
 
-    @Column(name = "inicio" , nullable = false)
-    private Date createdAt;
-
-    @Column(name = "expira" , nullable = false)
+    @Column(name = "expiresAt" , nullable = false)
     private Date expiresAt;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "usuario", nullable = false)
-    private Usuario usuario;
+    @JoinColumn(name = "usuario_id")
+    public Usuario usuario;
 }
 
