@@ -3,7 +3,7 @@ package com.grupo1.demo.Models;
 
 import jakarta.persistence.*;
 import lombok.Data;
-import java.sql.Date;
+import java.util.Date;
 
 @Data
 @Entity
@@ -20,8 +20,8 @@ public class Token {
     @Column(name = "expiresAt" , nullable = false)
     private Date expiresAt;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "usuario_id")
-    public Usuario usuario;
+    public Usuario user;
 }
 

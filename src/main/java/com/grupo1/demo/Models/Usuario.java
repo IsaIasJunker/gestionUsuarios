@@ -5,7 +5,6 @@ import lombok.Data;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-import java.util.Set;
 
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -47,8 +46,9 @@ public class Usuario implements UserDetails {
     private List<Permisos> permisos = new ArrayList<>();
 
     @JsonIgnore //Notacion para que a la hora de mandar la request en el json no se tenga en cuenta
-    @OneToMany(mappedBy = "usuario", fetch = FetchType.LAZY)
-    private List<Token> tokens;
+    @OneToOne(mappedBy = "user", orphanRemoval = true, fetch = FetchType.LAZY)
+    @JsonView(Views.NoCrudView.class)
+    private Token token;
 
     // Constructor que recibe un UsuarioDTO
     public Usuario(UsuarioDTO usuarioDTO) {

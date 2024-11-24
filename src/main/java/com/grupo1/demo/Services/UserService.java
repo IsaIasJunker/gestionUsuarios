@@ -1,19 +1,19 @@
 package com.grupo1.demo.Services;
 
-import com.grupo1.demo.Auth.AuthService;
-
 import com.grupo1.demo.Models.Permisos;
 import com.grupo1.demo.Models.Sistema;
 import com.grupo1.demo.Models.Usuario;
 import com.grupo1.demo.Repositories.SistemaRepository;
 import com.grupo1.demo.Repositories.UserRepository;
 import com.grupo1.demo.Auth.LoginRequest;
+import com.grupo1.demo.Jwt.JwtService;
 import com.grupo1.demo.Auth.AuthResponse;
 import com.grupo1.demo.dto.PermisosDTO;
 import com.grupo1.demo.dto.UsuarioDTO;
 import com.grupo1.demo.dto.UsuarioResponseDTO;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -21,8 +21,8 @@ import java.util.stream.Collectors;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.userdetails.User;
-import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -37,10 +37,13 @@ public class UserService {
     SistemaRepository sistemaRepository;
 
     @Autowired
-    AuthService authService;
+    AuthenticationManager authenticationManager;
 
     @Autowired
     private BCryptPasswordEncoder passwordEncoder;
+
+    @Autowired
+    JwtService jwtService;
 
 
     /**
@@ -222,21 +225,32 @@ public class UserService {
     /**
      * Loguear un usuario existente.
      */
-    public ResponseEntity<AuthResponse> login(LoginRequest request) {
-        Optional<Usuario> optionalUser = userRepository.findOptionalByUsername(request.getUsername());
-        if (optionalUser.isEmpty()) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new AuthResponse("Usuario no encontrado"));
-        }
+    public ResponseEntity<AuthResponse> login(LoginRequest loginRequest) {
+        // Autenticar credenciales del usuario
+        authenticationManager.authenticate(
+                new UsernamePasswordAuthenticationToken(
+                        loginRequest.getUsername(), loginRequest.getPassword()
+                )
+        );
 
-        Usuario usuario = optionalUser.get();
+        // Obtener el usuario autenticado
+        Usuario usuario = userRepository.findOptionalByUsername(loginRequest.getUsername())
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Usuario no encontrado"));
 
-        UserDetails userDetails = User.builder()
-                .username(usuario.getUsername())
-                .password(usuario.getPassword())
-                .build();
+        // Generar y almacenar el token
+        String token = jwtService.generateAndStoreToken(usuario);
 
-        String token = authService.authenticateAndGenerateToken(request.getUsername(), request.getPassword(), userDetails);
+        // Obtener la fecha de expiración del token
+        Date expirationDate = jwtService.getExpiration(token);
+        long expiresIn = (expirationDate.getTime() - System.currentTimeMillis()) / 1000;  // Expiración en segundos
 
-        return ResponseEntity.ok(new AuthResponse(token));
+        // Crear la respuesta
+        AuthResponse response = AuthResponse.builder()
+            .token(token)
+            .userId(String.valueOf(usuario.getId()))  // ID del usuario autenticado
+            .expiresIn(expiresIn)  // Tiempo de expiración en segundos
+            .build();
+
+        return ResponseEntity.ok(response);
     }
 }

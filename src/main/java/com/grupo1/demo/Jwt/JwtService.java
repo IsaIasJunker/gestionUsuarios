@@ -5,8 +5,12 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Function;
 
-import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+
+import com.grupo1.demo.Models.Token;
+import com.grupo1.demo.Models.Usuario;
+import com.grupo1.demo.Repositories.TokenRepository;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
@@ -16,19 +20,39 @@ import io.jsonwebtoken.security.Keys;
 @Service
 public class JwtService {
 
+    @Autowired
+    private TokenRepository tokenRepository;
+
     // Genera una clave aleatoria para la firma del token
     private final Key secretKey = Keys.secretKeyFor(SignatureAlgorithm.HS256);
     private final long expirationTimeMs = 1000 * 60 * 60 * 24; // 1 dia de expiración
 
+    
     /**
-     * Genera un token con los datos del usuario.
+     * Genera un token y lo asocia a un usuario.
      */
-    public String getToken(UserDetails user) {
-        return generateToken(new HashMap<>(), user.getUsername());
+    public String generateAndStoreToken(Usuario usuario) {
+        // Si ya existe un token para este usuario, eliminarlo
+        Token existingToken = tokenRepository.findByUser_username(usuario.getUsername());
+        if (existingToken != null) {
+            tokenRepository.delete(existingToken);
+        }
+
+        // Generar el nuevo token
+        String tokenValue = generateToken(new HashMap<>(), usuario.getUsername());
+
+        // Crear y persistir el token en la base de datos
+        Token token = new Token();
+        token.setToken(tokenValue);
+        token.setExpiresAt(new Date(System.currentTimeMillis() + expirationTimeMs));
+        token.setUser(usuario);
+        tokenRepository.save(token);
+
+        return tokenValue;
     }
 
     /**
-     * Genera un token con claims personalizados y el username.
+     * Genera un token JWT con claims personalizados.
      */
     public String generateToken(Map<String, Object> extraClaims, String username) {
         return Jwts.builder()
@@ -48,11 +72,24 @@ public class JwtService {
     }
 
     /**
-     * Verifica si el token es válido para un usuario en particular.
+     * Verifica si el token es válido para un usuario específico.
      */
-    public boolean isTokenValid(String token, UserDetails userDetails) {
+    public boolean isTokenValid(String token, Usuario usuario) {
         final String username = getUsernameFromToken(token);
-        return username.equals(userDetails.getUsername()) && !isTokenExpired(token);
+        Token storedToken = tokenRepository.findByUser_username(usuario.getUsername());
+
+        // Verificar que el token sea válido y no haya expirado
+        return storedToken != null &&
+               storedToken.getToken().equals(token) &&
+               username.equals(usuario.getUsername()) &&
+               !isTokenExpired(token);
+    }
+
+    /**
+     * Valida si el token ha expirado.
+     */
+    private boolean isTokenExpired(String token) {
+        return getExpiration(token).before(new Date());
     }
 
     /**
@@ -64,16 +101,9 @@ public class JwtService {
     }
 
     /**
-     * Valida si el token ha expirado.
-     */
-    private boolean isTokenExpired(String token) {
-        return getExpiration(token).before(new Date());
-    }
-
-    /**
      * Obtiene la fecha de expiración del token.
      */
-    private Date getExpiration(String token) {
+    public Date getExpiration(String token) {
         return getClaim(token, Claims::getExpiration);
     }
 
