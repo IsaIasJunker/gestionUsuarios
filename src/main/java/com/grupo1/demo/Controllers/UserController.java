@@ -4,7 +4,6 @@ package com.grupo1.demo.Controllers;
 
 
 import com.grupo1.demo.Jwt.JwtService;
-import com.grupo1.demo.Models.Usuario;
 import com.grupo1.demo.Repositories.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -68,33 +67,23 @@ public class UserController {
     @JsonView(Views.CrudView.class)
     public ResponseEntity<?> getAllUsers(@RequestHeader("Authorization") String authHeader){
 
-        // Asegurarse de que la cabecera de autorización esté presente
-        if (authHeader == null || !authHeader.startsWith("Bearer ")){
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Authorization header is missing or invalid");
+        //Valido el token
+        if (!jwtService.isAuthenticationValid(authHeader)) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Usuario no autorizado");
         }
-
-        //Extraer el token del encabezado
-
-        String token = authHeader.substring(7); // Elimina el "Bearer " al inicio del token
-        // Obtener el nombre de usuario del token (esto dependerá de cómo esté estructurado el JWT)
-        String username = jwtService.getUsernameFromToken(token);
-
-        // Obtener el usuario desde la base de datos
-        Usuario usuario = userRepository.findByUsername(username); // Asegúrate de tener el repositorio adecuado
-
-        // Verificar que el token sea válido
-        if ((usuario == null || !jwtService.isTokenValid(token, usuario))){
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Token invalid");
-        }
-
-        //Si todo es valido, retorna la lista de usuarios
+        //Si el token es valido devuelve la lista de los usuarios de la base de datos
         return userService.getAllUsers();
     }   
 
     // Añadir un usuario 
     @PostMapping("/users")
     @JsonView(Views.CrudView.class)
-    public ResponseEntity<?> createUser(@RequestBody UsuarioDTO usuarioDTO) {
+    public ResponseEntity<?> createUser(@RequestBody UsuarioDTO usuarioDTO , @RequestHeader("Authorization") String authHeader){
+        
+        //Valido el token
+        if (!jwtService.isAuthenticationValid(authHeader)) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Usuario no autorizado");
+        }
         return userService.addUser(usuarioDTO);
     }
     
@@ -102,10 +91,13 @@ public class UserController {
     // Editar un usuario utilizando su id
     @PutMapping("/users/{userId}")
     @JsonView(Views.CrudView.class)
-    public ResponseEntity<?> editUser(
-        @PathVariable("userId") long userId,
-        @RequestBody UsuarioDTO updatedUser
-    ) {
+    public ResponseEntity<?> editUser(@PathVariable("userId") long userId, @RequestBody UsuarioDTO updatedUser, 
+    @RequestHeader("Authorization") String authHeader) {
+
+        //Valido el token
+        if (!jwtService.isAuthenticationValid(authHeader)) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Usuario no autorizado");
+        }
         // Llamar al servicio para editar el usuario
         return userService.editUser(userId, updatedUser);
     }
@@ -113,7 +105,13 @@ public class UserController {
     // Eliminar un usuario utilizando su id 
     @DeleteMapping("/users/{userId}")
     @JsonView(Views.CrudView.class)
-    public ResponseEntity<?> deleteStudent(@PathVariable("userId") long userId){
+    public ResponseEntity<?> deleteStudent(@PathVariable("userId") long userId , @RequestHeader("Authorization") String authHeader){
+
+        //Valido la autenticacion
+        if (!jwtService.isAuthenticationValid(authHeader)) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Usuario no autorizado");
+        }
+        //Si el token es valido entonces se puede eliminar un usuario por id
         return userService.deleteUserById(userId);
     }
 }

@@ -11,6 +11,7 @@ import org.springframework.stereotype.Service;
 import com.grupo1.demo.Models.Token;
 import com.grupo1.demo.Models.Usuario;
 import com.grupo1.demo.Repositories.TokenRepository;
+import com.grupo1.demo.Repositories.UserRepository;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
@@ -22,6 +23,9 @@ public class JwtService {
 
     @Autowired
     private TokenRepository tokenRepository;
+
+    @Autowired
+    private UserRepository userRepository;
 
     // Genera una clave aleatoria para la firma del token
     private final Key secretKey = Keys.secretKeyFor(SignatureAlgorithm.HS256);
@@ -116,5 +120,31 @@ public class JwtService {
                 .build()
                 .parseClaimsJws(token)
                 .getBody();
+    }
+
+    /**
+     * Metodo para verificar si el header de autorizacion contiene un token valido
+     * y si pertenece a un usuario existente de la base de datos
+     * @param authHeader es el header de autorizacion que debe incluir el token en el formato "Bearer {token}" 
+     * @return "True" si el header contiene un token válido y el usario asociado existe, de lo contrario "False".
+     */
+    public boolean isAuthenticationValid(String authHeader){
+        //Verifica que el header no sea nulo y tenga un formato válido
+        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+            return false;
+        }
+
+        //Extrae el token
+        String token = authHeader.substring(7);
+
+        //Obtiene el nombre de usuario del token
+        String userName = getUsernameFromToken(token);
+        //Obtiene el usuario de la base de datos con el nombre que obtuvo del token
+        Usuario usuario = userRepository.findByUsername(userName);
+        /*
+         * Valida el token del usuario
+         * Verifica que el usuario existe y luego que el token es valido para ese usuario
+         */
+        return usuario != null && isTokenValid(token, usuario); 
     }
 }
