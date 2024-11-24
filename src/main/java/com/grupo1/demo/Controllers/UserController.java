@@ -3,7 +3,11 @@
 package com.grupo1.demo.Controllers;
 
 
+import com.grupo1.demo.Jwt.JwtService;
+import com.grupo1.demo.Models.Usuario;
+import com.grupo1.demo.Repositories.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -23,6 +27,12 @@ public class UserController {
 
     @Autowired
     UserService userService;
+
+    @Autowired
+    JwtService jwtService;
+
+    @Autowired
+    UserRepository userRepository;
 
     /** ENDPOINTS NO CRUD (NO INCLUYE Permisos) **/
 
@@ -56,7 +66,28 @@ public class UserController {
     // Obtener todos los usuarios de la base de datos
     @GetMapping("/users")
     @JsonView(Views.CrudView.class)
-    public ResponseEntity<?> getAllUsers(){
+    public ResponseEntity<?> getAllUsers(@RequestHeader("Authorization") String authHeader){
+
+        // Asegurarse de que la cabecera de autorización esté presente
+        if (authHeader == null || !authHeader.startsWith("Bearer ")){
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Authorization header is missing or invalid");
+        }
+
+        //Extraer el token del encabezado
+
+        String token = authHeader.substring(7); // Elimina el "Bearer " al inicio del token
+        // Obtener el nombre de usuario del token (esto dependerá de cómo esté estructurado el JWT)
+        String username = jwtService.getUsernameFromToken(token);
+
+        // Obtener el usuario desde la base de datos
+        Usuario usuario = userRepository.findByUsername(username); // Asegúrate de tener el repositorio adecuado
+
+        // Verificar que el token sea válido
+        if ((usuario == null || !jwtService.isTokenValid(token, usuario))){
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Token invalid");
+        }
+
+        //Si todo es valido, retorna la lista de usuarios
         return userService.getAllUsers();
     }   
 
