@@ -3,11 +3,14 @@ package com.grupo1.demo.Services;
 import com.grupo1.demo.Models.Permisos;
 import com.grupo1.demo.Models.Sistema;
 import com.grupo1.demo.Models.Usuario;
+import com.grupo1.demo.Repositories.PermisoRepository;
 import com.grupo1.demo.Repositories.SistemaRepository;
 import com.grupo1.demo.Repositories.UserRepository;
+import com.grupo1.demo.Auth.AuthRequest;
+import com.grupo1.demo.Auth.AuthResponse;
 import com.grupo1.demo.Auth.LoginRequest;
 import com.grupo1.demo.Jwt.JwtService;
-import com.grupo1.demo.Auth.AuthResponse;
+import com.grupo1.demo.Auth.LoginResponse;
 import com.grupo1.demo.dto.PermisosDTO;
 import com.grupo1.demo.dto.UsuarioDTO;
 import com.grupo1.demo.dto.UsuarioResponseDTO;
@@ -32,6 +35,9 @@ public class UserService {
 
     @Autowired
     UserRepository userRepository;
+
+    @Autowired
+    PermisoRepository permisoRepository;
 
     @Autowired
     SistemaRepository sistemaRepository;
@@ -225,7 +231,7 @@ public class UserService {
     /**
      * Loguear un usuario existente.
      */
-    public ResponseEntity<AuthResponse> login(LoginRequest loginRequest) {
+    public ResponseEntity<LoginResponse> login(LoginRequest loginRequest) {
         // Autenticar credenciales del usuario
         authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(
@@ -245,12 +251,50 @@ public class UserService {
         long expiresIn = (expirationDate.getTime() - System.currentTimeMillis()) / 1000;  // Expiración en segundos
 
         // Crear la respuesta
-        AuthResponse response = AuthResponse.builder()
+        LoginResponse response = LoginResponse.builder()
             .token(token)
             .userId(String.valueOf(usuario.getId()))  // ID del usuario autenticado
             .expiresIn(expiresIn)  // Tiempo de expiración en segundos
             .build();
 
         return ResponseEntity.ok(response);
+    }
+
+    public ResponseEntity<AuthResponse> authUser(AuthRequest authRequest) {
+        try {
+            // Verificamos si el usuario existe.
+            String username = jwtService.getUsernameFromToken(authRequest.getToken());
+            Usuario user = userRepository.findByUsername(username);
+            if (user == null) {
+                return ResponseEntity.ok(AuthResponse.builder()
+                    .authorized(false)
+                    .build());
+            }
+
+            // Verificamos si el sistema existe.
+            Optional<Sistema> optionalSystem = sistemaRepository.findById(authRequest.getSystemId());
+            if (optionalSystem.isEmpty()) {
+                return ResponseEntity.ok(AuthResponse.builder()
+                    .authorized(false)
+                    .build());
+            }
+
+            // Obtenemos el sistema existente
+            Sistema system = optionalSystem.get();
+
+            // Verificar si el usuario tiene permiso para el sistema
+            boolean result = permisoRepository.existsByUsuarioAndSistema(user, system);
+
+            // Construir y devolver la respuesta
+            return ResponseEntity.ok(AuthResponse.builder()
+                .authorized(result)
+                .build());
+        } catch (Exception e) {
+            // Manejo de errores
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(AuthResponse.builder()
+                    .authorized(false)
+                    .build());
+        }
     }
 }

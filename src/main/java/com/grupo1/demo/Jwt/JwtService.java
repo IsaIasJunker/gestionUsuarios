@@ -139,6 +139,7 @@ public class JwtService {
 
         //Obtiene el nombre de usuario del token
         String userName = getUsernameFromToken(token);
+
         //Obtiene el usuario de la base de datos con el nombre que obtuvo del token
         Usuario usuario = userRepository.findByUsername(userName);
         /*

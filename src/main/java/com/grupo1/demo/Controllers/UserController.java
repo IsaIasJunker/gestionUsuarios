@@ -11,8 +11,10 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import com.fasterxml.jackson.annotation.JsonView;
+import com.grupo1.demo.Auth.AuthRequest;
 import com.grupo1.demo.Auth.AuthResponse;
 import com.grupo1.demo.Auth.LoginRequest;
+import com.grupo1.demo.Auth.LoginResponse;
 import com.grupo1.demo.Services.UserService;
 import com.grupo1.demo.config.Views;
 import com.grupo1.demo.dto.UsuarioDTO;
@@ -40,7 +42,7 @@ public class UserController {
      */
     @PostMapping("/login")
     @JsonView(Views.NoCrudView.class)
-    public ResponseEntity<AuthResponse> login(@RequestBody LoginRequest loginRequest) {
+    public ResponseEntity<LoginResponse> login(@RequestBody LoginRequest loginRequest) {
         return userService.login(loginRequest);
     }
 
@@ -53,7 +55,14 @@ public class UserController {
         return userService.addUser(usuarioDTO);
     }
 
-    //Obtener un usuario en concreto utilizando su id
+    // Autorizar el usuario a un sistema
+    @PostMapping("/authorize")
+    @JsonView(Views.NoCrudView.class)
+    public ResponseEntity<AuthResponse> authorize(@RequestBody AuthRequest authRequest){
+        return userService.authUser(authRequest);
+    }
+
+    // Obtener un usuario en concreto utilizando su id
     @GetMapping("/users/{userId}")
     @JsonView(Views.NoCrudView.class)
     public ResponseEntity<?> getUserById(@PathVariable ("userId") long userId){
