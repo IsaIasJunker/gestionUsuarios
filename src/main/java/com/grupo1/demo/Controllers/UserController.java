@@ -19,9 +19,6 @@ import com.grupo1.demo.dto.UsuarioDTO;
 
 @RestController
 @RequestMapping("/cuentas/API")
-/**
- * Clase UserController
- */
 public class UserController {
 
     @Autowired
@@ -35,18 +32,15 @@ public class UserController {
 
     /** ENDPOINTS NO CRUD (NO INCLUYE Permisos) **/
 
-    /**
-     * Loguearse utilizando un token JWT.
-     */
+
+    //Loguearse utilizando un token JWT.
     @PostMapping("/login")
     @JsonView(Views.NoCrudView.class)
     public ResponseEntity<AuthResponse> login(@RequestBody LoginRequest loginRequest) {
         return userService.login(loginRequest);
     }
 
-    /**
-     * Registrar un nuevo usuario.
-     */
+    //Registrar un nuevo usuario.
     @PostMapping("/register")
     @JsonView(Views.NoCrudView.class)
     public ResponseEntity<?> register(@RequestBody UsuarioDTO usuarioDTO){
@@ -84,6 +78,8 @@ public class UserController {
         if (!jwtService.isAuthenticationValid(authHeader)) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Usuario no autorizado");
         }
+
+        //Si el token es valido añade un nuevo usuario
         return userService.addUser(usuarioDTO);
     }
     
@@ -113,5 +109,11 @@ public class UserController {
         }
         //Si el token es valido entonces se puede eliminar un usuario por id
         return userService.deleteUserById(userId);
+    }
+    
+    //Cerrar sesion >.<
+    @PostMapping("/logout")
+    public ResponseEntity<?> deleteToken(@RequestHeader("Authorization") String authHeader){
+        return jwtService.logout(authHeader);
     }
 }
