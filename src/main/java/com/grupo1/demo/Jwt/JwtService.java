@@ -6,6 +6,8 @@ import java.util.Map;
 import java.util.function.Function;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import com.grupo1.demo.Models.Token;
@@ -147,5 +149,53 @@ public class JwtService {
          * Verifica que el usuario existe y luego que el token es valido para ese usuario
          */
         return usuario != null && isTokenValid(token, usuario); 
+    }
+
+    /**
+     * Elimina un token de la base de datos.
+     * @param authHeader El Header de autenticación que contiene el token
+     * @return {@code True} si el token fue eliminado, {@code False} si no se encontró el token
+     */
+    public ResponseEntity<String> logout(String authHeader) {
+
+        //Verifica que el header no sea nulo y tenga un formato válido
+        if (authHeader == null || !authHeader.startsWith("Bearer ")){
+            return ResponseEntity.badRequest().body("Token invalido");
+        }
+
+        //Extrae el token del header quitando el prefijo "Bearer "
+        String token = authHeader.substring(7);
+
+        //Intenta eliminar el token de la base de datos
+        boolean deleted = deleteToken(token);
+
+        //Si el token fue eliminado, devuelve una respuesta de éxito
+        if (deleted) {
+            return ResponseEntity.ok("Token eliminado");
+        } else {
+            
+            //Si no se encontró el token, devuelve un 404, indicando que no se encontró el token
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Token no encontrado");
+        }
+    }
+    
+    /**
+     * Elimina un token de la base de datos.
+     * @param token el token a eliminar
+     * @return {@code True} si el token fue eliminado, {@code False} si no se encontró el token
+     */
+    private boolean deleteToken(String token) {
+        
+        // Busco el token en la base de datos
+        Token storedToken = tokenRepository.findByToken(token);
+
+        // Si lo encuentro lo elimino
+        if (storedToken != null) {
+            tokenRepository.delete(storedToken);
+            return true; // Indica que fue eliminado
+        }
+
+        // Si no lo encuentro, devuelve falso
+        return false;
     }
 }
