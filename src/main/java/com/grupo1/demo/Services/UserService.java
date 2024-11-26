@@ -5,6 +5,7 @@ import com.grupo1.demo.Models.Sistema;
 import com.grupo1.demo.Models.Usuario;
 import com.grupo1.demo.Repositories.PermisoRepository;
 import com.grupo1.demo.Repositories.SistemaRepository;
+import com.grupo1.demo.Repositories.TokenRepository;
 import com.grupo1.demo.Repositories.UserRepository;
 import com.grupo1.demo.Auth.AuthRequest;
 import com.grupo1.demo.Auth.AuthResponse;
@@ -12,6 +13,7 @@ import com.grupo1.demo.Auth.LoginRequest;
 import com.grupo1.demo.Jwt.JwtService;
 import com.grupo1.demo.Auth.LoginResponse;
 import com.grupo1.demo.dto.PermisosDTO;
+import com.grupo1.demo.dto.UserResponse;
 import com.grupo1.demo.dto.UsuarioDTO;
 import com.grupo1.demo.dto.UsuarioResponseDTO;
 
@@ -50,6 +52,9 @@ public class UserService {
 
     @Autowired
     JwtService jwtService;
+
+    @Autowired
+    TokenRepository tokenRepository;
 
 
     /**
@@ -200,17 +205,30 @@ public class UserService {
     }
 
     /**
-     * Metodo que busca un usuario por su id
-     * @param id , del usuario que queremos buscar
-     * @return , el usuario que buscamos por id
-    */
-    public ResponseEntity<?> getUserById(long id){
-        Optional<Usuario> usuario = userRepository.findById(id);
-        //Verifico que el usuario exista en la base de datos
-        if(usuario.isEmpty()){
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Usuario no encontrado");
+     * Metodo que busca un usuario por su token de autenticación.
+     * @param authHeader el encabezado de autorización que contiene el token del usuario.
+     * @return el usuario asociado al token o un mensaje de error si no se encuentra.
+     */
+    public ResponseEntity<?> getUserByToken(String authHeader) {
+        // Extraer el token del encabezado de autorización
+        String token = authHeader.startsWith("Bearer ") ? authHeader.substring(7) : authHeader;
+
+        // Obtener el nombre de usuario a partir del token
+        String username = jwtService.getUsernameFromToken(token);
+
+        // Buscar el usuario en el repositorio por el nombre de usuario
+        Usuario usuario = userRepository.findByUsername(username);
+
+        // Verificar si el usuario no se encuentra
+        if (usuario == null) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Usuario no encontrado");
         }
-        return ResponseEntity.ok(usuario);
+
+        // Crear una respuesta de usuario con los detalles del usuario
+        UserResponse usuarioResponse = new UserResponse(usuario.getUsername(), usuario.getFirstName(), usuario.getLastName());
+
+        // Devolver la respuesta con el usuario encontrado
+        return ResponseEntity.ok(usuarioResponse);
     }
     
     /**
