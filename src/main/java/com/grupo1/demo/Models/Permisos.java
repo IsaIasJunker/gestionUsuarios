@@ -31,7 +31,7 @@ public class Permisos {
     @JsonProperty("systemId")
     @JsonView(Views.CrudView.class)
     public Long getSistemaId() {
-        return sistema != null ? sistema.getId_sistemas() : null;
+        return sistema != null ? sistema.getId() : null;
     }
 
     // Getter para el sistemaNombre

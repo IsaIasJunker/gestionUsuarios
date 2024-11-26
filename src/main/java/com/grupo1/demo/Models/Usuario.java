@@ -3,22 +3,24 @@ import jakarta.persistence.*;
 import lombok.Data;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
-import java.util.Set;
+
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.userdetails.UserDetails;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonView;
 import com.grupo1.demo.config.Views;
 import com.grupo1.demo.dto.UsuarioDTO;
-
 @Data
 @Entity
 @Table(name = "usuarios")
-public class Usuario {
+public class Usuario implements UserDetails {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "id_usuario", nullable = false)
+    @Column(name = "id", nullable = false)
     @JsonView(Views.NoCrudView.class) // Incluido en ambas vistas
     private long id;
 
@@ -43,9 +45,10 @@ public class Usuario {
     @JsonView(Views.CrudView.class)
     private List<Permisos> permisos = new ArrayList<>();
 
-    @OneToMany(mappedBy = "usuario", cascade = CascadeType.ALL, orphanRemoval = true)
-    @JsonIgnore // Siempre ignorar sesiones en todas las vistas
-    private Set<Token> sesiones;
+    @JsonIgnore //Notacion para que a la hora de mandar la request en el json no se tenga en cuenta
+    @OneToOne(mappedBy = "user", orphanRemoval = true, fetch = FetchType.LAZY)
+    @JsonView(Views.NoCrudView.class)
+    private Token token;
 
     // Constructor que recibe un UsuarioDTO
     public Usuario(UsuarioDTO usuarioDTO) {
@@ -55,5 +58,10 @@ public class Usuario {
         this.password = usuarioDTO.getPassword();
     }
     public Usuario(){        
+    }
+
+    @Override
+    public Collection<? extends GrantedAuthority> getAuthorities() {
+        return List.of();
     }
 }
