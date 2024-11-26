@@ -185,9 +185,6 @@ public class UserService {
         return ResponseEntity.ok("Usuario actualizado correctamente");
     }
     
-
-
-
      /**
      * Metodo que elimina un usuario utilizando su id
      * @param id , del usuario que vamos a eliminar

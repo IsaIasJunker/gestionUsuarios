@@ -105,9 +105,12 @@ public class JwtService {
     }
 
     /**
-     * Obtiene la fecha de expiración del token.
+     * Obtiene del token la fecha de caducidad del token 
+     * @param token el token del que va a extraer la fecha de caducidad
+     * @return la fecha de caducidad del token
      */
     public Date getExpiration(String token) {
+        // Extracts the expiration claim from the token
         return getClaim(token, Claims::getExpiration);
     }
 
@@ -136,6 +139,11 @@ public class JwtService {
 
         //Extrae el token
         String token = authHeader.substring(7);
+
+        //Verifica que el token no esté expirado
+        if (verifyTokenExpiresAt(token)) {
+            return false; // Si el token ha expirado, retorna false
+        }
 
         //Obtiene el nombre de usuario del token
         String userName = getUsernameFromToken(token);
@@ -196,4 +204,25 @@ public class JwtService {
         // Si no lo encuentro, devuelve falso
         return false;
     }
+
+    /**
+     * Verifica si el token ha expirado.
+     * @param token El token a verificar
+     * @return {@code True} si el token ha expirado, {@code False} en caso contrario
+     */
+    public boolean verifyTokenExpiresAt (String token){
+        
+        //Obtenemos la fecha de caducidad del token
+        Date expiresDate = getClaim(token, Claims::getExpiration);
+        
+        //Obtenemos la fecha actual
+        Date currentDate = new Date();
+        
+        //Verificamos si la fecha de caducidad del token es menor a la fecha actual
+        if (expiresDate.before(currentDate)) {
+            return true;
+        }
+        return false;
+    }
+
 }
