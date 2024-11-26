@@ -59,7 +59,7 @@ public class UserController {
     // Obtener un usuario en concreto utilizando el token y su id
     @GetMapping("/users/{userId}")
     @JsonView(Views.NoCrudView.class)
-    public ResponseEntity<?> getUserById(@PathVariable("userId") long userId, @RequestHeader("Authorization") String authHeader) {
+    public ResponseEntity<?> getUserById(@PathVariable("userId") long userId, @RequestParam ("token") String authHeader) {
         return userService.getUserByToken(authHeader, userId);
     }    
 
