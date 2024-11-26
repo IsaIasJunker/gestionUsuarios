@@ -1,8 +1,6 @@
 package com.grupo1.demo.Jwt;
 import java.security.Key;
 import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.function.Function;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -31,7 +29,7 @@ public class JwtService {
 
     // Genera una clave aleatoria para la firma del token
     private final Key secretKey = Keys.secretKeyFor(SignatureAlgorithm.HS256);
-    private final long expirationTimeMs = 1000 * 60 * 60 * 24; // 1 dia de expiración
+    private final long expirationTimeMs = 1000 * 60 * 30; // 30 min
 
     
     /**
@@ -45,7 +43,7 @@ public class JwtService {
         }
 
         // Generar el nuevo token
-        String tokenValue = generateToken(new HashMap<>(), usuario.getUsername());
+        String tokenValue = generateToken(usuario.getUsername(), usuario.getId());
 
         // Crear y persistir el token en la base de datos
         Token token = new Token();
@@ -60,10 +58,10 @@ public class JwtService {
     /**
      * Genera un token JWT con claims personalizados.
      */
-    public String generateToken(Map<String, Object> extraClaims, String username) {
+    public String generateToken(String username, Long userId) {
         return Jwts.builder()
-                .setClaims(extraClaims)
                 .setSubject(username)
+                .claim("userId", userId) // Agregar el userId como claim personalizado
                 .setIssuedAt(new Date(System.currentTimeMillis()))
                 .setExpiration(new Date(System.currentTimeMillis() + expirationTimeMs))
                 .signWith(secretKey, SignatureAlgorithm.HS256)

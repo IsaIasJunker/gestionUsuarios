@@ -120,8 +120,9 @@ public class UserController {
         return userService.deleteUserById(userId);
     }
     
-    //Cerrar sesion >.<
+    //Cerrar sesion
     @PostMapping("/logout")
+    @JsonView(Views.CrudView.class)
     public ResponseEntity<?> deleteToken(@RequestHeader("Authorization") String authHeader){
         return jwtService.logout(authHeader);
     }
