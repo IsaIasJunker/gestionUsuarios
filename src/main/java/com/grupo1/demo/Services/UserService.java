@@ -209,7 +209,7 @@ public class UserService {
      * @param authHeader el encabezado de autorización que contiene el token del usuario.
      * @return el usuario asociado al token o un mensaje de error si no se encuentra.
      */
-    public ResponseEntity<?> getUserByToken(String authHeader) {
+    public ResponseEntity<?> getUserByToken(String authHeader , long id) {
         // Extraer el token del encabezado de autorización
         String token = authHeader.startsWith("Bearer ") ? authHeader.substring(7) : authHeader;
 
@@ -222,6 +222,11 @@ public class UserService {
         // Verificar si el usuario no se encuentra
         if (usuario == null) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Usuario no encontrado");
+        }
+
+        // Verificar si el id del usuario no coincide con el id proporcionado
+        if (usuario.getId() != id) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("El id del usuario no coincide con el id proporcionado");
         }
 
         // Crear una respuesta de usuario con los detalles del usuario
