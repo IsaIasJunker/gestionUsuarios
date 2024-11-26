@@ -5,5 +5,5 @@ import lombok.Data;
 @Data
 public class AuthRequest {
     private String token;
-    private long systemId;
+    private String systemId;
 }

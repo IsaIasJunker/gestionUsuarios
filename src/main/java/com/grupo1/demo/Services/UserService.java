@@ -291,8 +291,19 @@ public class UserService {
                     .build());
             }
 
+            //Convertimos a systemId a Long
+            Long systemId;
+
+            try{
+                systemId = Long.parseLong(authRequest.getSystemId());
+            } catch(NumberFormatException e){
+                return ResponseEntity.ok(AuthResponse.builder()
+                    .authorized(false)
+                    .build());
+            }
+
             // Verificamos si el sistema existe.
-            Optional<Sistema> optionalSystem = sistemaRepository.findById(authRequest.getSystemId());
+            Optional<Sistema> optionalSystem = sistemaRepository.findById(systemId);
             if (optionalSystem.isEmpty()) {
                 return ResponseEntity.ok(AuthResponse.builder()
                     .authorized(false)
