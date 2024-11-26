@@ -56,14 +56,28 @@ public class UserController {
         return userService.authUser(authRequest);
     }
 
-    // Obtener un usuario en concreto utilizando su id
-    @GetMapping("/users/{userId}")
+    // Obtener un usuario en concreto utilizando el token
+    @GetMapping("/user")
     @JsonView(Views.NoCrudView.class)
-    public ResponseEntity<?> getUserById(@PathVariable ("userId") long userId){
-        return userService.getUserById(userId);
+    public ResponseEntity<?> getUserById(@RequestHeader ("Authorization") String authHeader){
+        
+        //Verifico que el token sea valido
+        if (!jwtService.isAuthenticationValid(authHeader)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Token invalido");
+        }
+        //Si el token es valido retorna el usuario asociado al token
+        return userService.getUserByToken(authHeader);
     }
 
     /** ENDPOINTS CRUD (INCLUYE Permisos) **/
+
+    @GetMapping("/isTokenValid")
+    public ResponseEntity<?> isTokenValid(@RequestHeader("Authorization") String authHeader) {
+        if (!jwtService.isAuthenticationValid(authHeader)) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Token inválido o expirado");
+        }
+        return ResponseEntity.ok("Token válido");
+    }
 
     // Obtener todos los usuarios de la base de datos
     @GetMapping("/users")
