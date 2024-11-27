@@ -27,7 +27,7 @@ public class SecurityConfig {
 
     @Autowired
     JwtAuthenticationFilter jwtAuthenticationFilter;
-    
+
     @Autowired
     CustomUserDetailsService customUserDetailsService;
 
@@ -53,10 +53,10 @@ public class SecurityConfig {
     @Bean
     public CorsFilter corsFilter() {
         CorsConfiguration corsConfig = new CorsConfiguration();
-        corsConfig.addAllowedOrigin("http://localhost:3000");
+        corsConfig.addAllowedOrigin("*");
         corsConfig.addAllowedMethod("*");
         corsConfig.addAllowedHeader("*");
-        corsConfig.setAllowCredentials(true);
+//        corsConfig.setAllowCredentials(true);
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", corsConfig);
@@ -69,11 +69,11 @@ public class SecurityConfig {
         http
             .cors(cors -> {
                 CorsConfiguration corsConfig = new CorsConfiguration();
-                corsConfig.addAllowedOrigin("http://localhost:3000"); // Ajusta según tu dominio
-                corsConfig.addAllowedOrigin("http://localhost:3000"); // Ajusta según tu dominio
+                corsConfig.addAllowedOrigin("*"); // Ajusta según tu dominio
+                corsConfig.addAllowedOrigin("*"); // Ajusta según tu dominio
                 corsConfig.addAllowedMethod("*");
                 corsConfig.addAllowedHeader("*");
-                corsConfig.setAllowCredentials(true);
+                //corsConfig.setAllowCredentials(true);
 
                 UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
                 source.registerCorsConfiguration("/**", corsConfig);
